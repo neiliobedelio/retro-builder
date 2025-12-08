@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Building Progress</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui-layer">
+            <div id="score">SCORE: 0</div>
+            <div id="life-container">
+                <div id="life-label">LIFE</div>
+                <div id="life-bar-bg">
+                    <div id="life-bar-fill"></div>
+                </div>
+            </div>
+            <div id="level">LEVEL: 1</div>
+        </div>
+        <div id="instruction-screen" class="screen active">
+            <h1>HOW TO PLAY</h1>
+            <div class="instruction-list">
+                <p><span class="highlight">YOU:</span> A Roadrunner in a hard hat. Safety first!</p>
+                <p><span class="highlight">BOSS:</span> A Luchador who hates OSHA violations.</p>
+                <p><span class="highlight">BRICKS:</span> Gold bars? Cheese? Just stack 'em.</p>
+                <p><span class="highlight">GOAL:</span> Fill the windows. Don't get flattened.</p>
+            </div>
+            <button id="instruction-btn">I UNDERSTAND</button>
+        </div>
+
+        <div id="start-screen" class="screen hidden">
+            <h1>BUILDING PROGRESS</h1>
+            <p>PRESS ENTER OR TAP TO START</p>
+        </div>
+
+        <div id="level-transition-screen" class="screen hidden">
+            <h1 class="blink">CONGRATULATIONS!</h1>
+            <h2 id="next-level-text">LEVEL 2... BEGIN!</h2>
+        </div>
+
+        <div id="game-over-screen" class="screen hidden">
+            <h1>GAME OVER</h1>
+            <p id="final-score">SCORE: 0</p>
+            <button id="restart-btn">TRY AGAIN</button>
+        </div>
+    </div>
+    <script src="main.js"></script>
+</body>
+
+</html>
