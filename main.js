@@ -977,7 +977,7 @@ function nextLevel() {
         document.getElementById('go-title').style.color = "#ff0000"; // Red
         document.getElementById('go-title').style.fontSize = "40px";
 
-        document.getElementById('final-score').innerHTML = `You have defeated the mighty LUCHA CABRA<br>and have made your city a better city.<br><br>FINAL SCORE: ${score}`;
+        document.getElementById('final-score').innerHTML = `You have defeated the mighty LUCHA CABRA<br>and have made your city a better place.<br><br>FINAL SCORE: ${score}`;
 
         // Hide Try Again, Show New Buttons is default in HTML now? 
         // We'll manage buttons in update if needed, but for now assuming HTML change.
