@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Building Progress</title>
+    <title>Lucha Cabra!</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -40,23 +40,10 @@
 
         <div id="start-screen" class="screen hidden">
             <!-- 3D Arched Title -->
-            <svg width="100%" height="150" viewBox="0 0 600 150">
-                <defs>
-                    <path id="curve" d="M 50 120 Q 300 20 550 120" />
-                    <filter id="shadow3d">
-                        <feDropShadow dx="4" dy="4" stdDeviation="2" flood-color="#550000" flood-opacity="0.8" />
-                        <feDropShadow dx="2" dy="2" stdDeviation="0" flood-color="#aa0000" flood-opacity="1" />
-                    </filter>
-                </defs>
-                <text width="600" style="filter: url(#shadow3d);">
-                    <textPath href="#curve" startOffset="50%" text-anchor="middle"
-                        style="font-family: 'Press Start 2P', cursive; font-size: 38px; fill: #ffcc00; stroke: #8b0000; stroke-width: 2px;">
-                        <tspan dy="-20">RESCUE</tspan>
-                        <tspan x="300" dy="50">GORDLANDIA</tspan>
-                    </textPath>
-                </text>
-            </svg>
-            <p>PRESS ENTER OR TAP TO START</p>
+            <!-- Title Image -->
+            <img src="title.png" id="main-title" alt="Lucha Cabra"
+                style="width: 80%; max-width: 600px; height: auto; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
+            <p>TAP TO START!</p>
         </div>
 
         <div id="level-transition-screen" class="screen hidden">

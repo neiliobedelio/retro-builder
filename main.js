@@ -189,6 +189,66 @@ class SoundManager {
             this.themeInterval = null;
         }
     }
+
+    playThunderTheme() {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        // Dark Chords
+        const playChord = (notes, time, duration) => {
+            notes.forEach(freq => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime + time);
+
+                // Deep and ominous
+                gain.gain.setValueAtTime(0, this.ctx.currentTime + time);
+                gain.gain.linearRampToValueAtTime(0.15, this.ctx.currentTime + time + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + time + duration);
+
+                // Lowpass Filter for "muffled" dark sound
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.max = 400;
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(this.ctx.currentTime + time);
+                osc.stop(this.ctx.currentTime + time + duration);
+            });
+        };
+
+        // Thunder Noise
+        const playThunder = (time) => {
+            const bufferSize = this.ctx.sampleRate * 2; // 2 seconds
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+            const gain = this.ctx.createGain();
+
+            // Violent burst then fade
+            gain.gain.setValueAtTime(0, this.ctx.currentTime + time);
+            gain.gain.linearRampToValueAtTime(0.8, this.ctx.currentTime + time + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + time + 1.5);
+
+            noise.connect(gain);
+            gain.connect(this.ctx.destination);
+            noise.start(this.ctx.currentTime + time);
+        };
+
+        // Sequence
+        playThunder(0);
+        playChord([60, 90, 120], 0.2, 3.0); // Deep Cluster
+        playThunder(0.5);
+        playChord([55, 85, 115], 0.8, 3.0);
+    }
 }
 
 
@@ -296,8 +356,9 @@ class Launcher {
                     }
 
                     let drawX = c;
-                    // Flip X if facing left
-                    if (!facingRight) {
+                    // Default sprite is Left-Facing.
+                    // Flip X if facing Right.
+                    if (facingRight) {
                         drawX = (sprite[0].length - 1) - c;
                     }
 
@@ -474,6 +535,7 @@ class Blueprint {
             let startRow = Math.floor(Math.random() * (rows - 2));
             for (let r = 0; r < startRow; r++) this.grid[r][c] = -1;
         }
+        this.columnFlashes = new Array(cols).fill(0);
     }
     update(dt) {
         let filled = 0; let total = 0;
@@ -482,6 +544,10 @@ class Blueprint {
                 if (this.grid[r][c] !== -1) total++;
                 if (this.grid[r][c] === 1) filled++;
             }
+        }
+        // Update Flashes
+        for (let c = 0; c < this.cols; c++) {
+            if (this.columnFlashes[c] > 0) this.columnFlashes[c] -= dt;
         }
         if (total > 0 && filled === total) nextLevel();
     }
@@ -520,6 +586,18 @@ class Blueprint {
                     ctx.shadowBlur = 0;
                 }
             }
+
+            // White Flash Overlay
+            if (this.columnFlashes[c] > 0) {
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, this.columnFlashes[c])})`; // Fade out
+                // Draw over entire column area (from margin to bottom)
+                const colX = this.sideMargin + c * this.brickWidth;
+                const colY = 50; // Top margin
+                const colH = this.rows * this.brickHeight;
+                ctx.fillRect(colX, colY, this.brickWidth, colH);
+                ctx.restore();
+            }
         }
     }
     checkCollision(brick) {
@@ -534,6 +612,19 @@ class Blueprint {
                 score += 50;
                 audio.playPrize();
                 floatingTexts.push(new FloatingText("BUILT!", brick.x, brick.y));
+
+                // Check if Column Completed
+                let colComplete = true;
+                for (let r = 0; r < this.rows; r++) {
+                    if (this.grid[r][col] === 0) { colComplete = false; break; }
+                }
+
+                if (colComplete) {
+                    this.columnFlashes[col] = 1.0; // 1 Second Flash
+                    audio.playWin(); // Nice sound
+                    floatingTexts.push(new FloatingText("DONE!", brick.x, brick.y - 30));
+                }
+
                 return true;
             }
         }
@@ -1018,6 +1109,12 @@ function update(dt) {
                 bricks.splice(i, 1);
                 hitBarrier = true;
                 audio.playHit();
+
+                // Javelina Reaction
+                if (c.type === 'JAVELINA') {
+                    floatingTexts.push(new FloatingText("grr!", c.x, c.y));
+                }
+
                 c.hp--;
                 if (c.hp <= 0) {
                     cactuses.splice(j, 1);
@@ -1041,7 +1138,7 @@ function update(dt) {
                 // Hit Boss
                 boss.takeDamage(10);
                 bricks.splice(i, 1);
-                floatingTexts.push(new FloatingText("HIT!", boss.x, boss.y));
+                floatingTexts.push(new FloatingText("¡Ay!", boss.x, boss.y));
             }
         }
     }
@@ -1060,6 +1157,10 @@ function update(dt) {
         let ft = floatingTexts[i]; ft.update(dt);
         if (ft.life <= 0) floatingTexts.splice(i, 1);
     }
+
+    // Update UI Score
+    const scoreEl = document.getElementById('score');
+    if (scoreEl) scoreEl.innerText = `SCORE: ${score}`;
     particles.forEach(p => p.update(dt));
     particles = particles.filter(p => p.life > 0);
 }
@@ -1128,7 +1229,14 @@ function instructionUnderstand() {
     console.log("Instruction understood. Switching to Start Screen.");
     document.getElementById('instruction-screen').classList.add('hidden');
     document.getElementById('start-screen').classList.remove('hidden');
+
     if (audio.ctx.state === 'suspended') audio.ctx.resume();
+
+    // Trigger Effects
+    audio.playThunderTheme();
+    const title = document.getElementById('main-title');
+    if (title) title.classList.add('shake');
+
     resize();
     initGame();
     currentState = STATE.MENU;
@@ -1157,7 +1265,7 @@ setTimeout(() => {
 
     const planFunBtn = document.getElementById('plan-fun-btn');
     if (planFunBtn) planFunBtn.addEventListener('click', () => {
-        alert("Planning something fun! (Placeholder Link)");
+        window.open('https://www.gordleygroup.com/contact', '_blank');
     });
 }, 500);
 
