@@ -576,8 +576,11 @@ class Blueprint {
                     let wHeight = (bHeight - (margin * (paneRows + 1))) / paneRows;
                     for (let pr = 0; pr < paneRows; pr++) {
                         for (let pc = 0; pc < paneCols; pc++) {
-                            let hue = 120 - (r / this.rows) * 60; hue += (c * 13) % 10;
-                            if (Math.random() > 0.98) ctx.fillStyle = '#fff'; else ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                            // GRADIENT: Green (Top/120) -> Yellow (Bottom/60)
+                            const factor = r / (this.rows - 1); // 0.0 top, 1.0 bottom
+                            const hue = 120 * (1 - factor) + 60 * factor;
+
+                            ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
                             ctx.shadowBlur = 5; ctx.shadowColor = '#ff0';
                             let wx = bx + 2 + margin + (pc * (wWidth + margin)); let wy = brickY + margin + (pr * (wHeight + margin));
                             ctx.fillRect(wx, wy, wWidth, wHeight);
@@ -639,10 +642,20 @@ class Boss {
         this.speed = 100; this.hp = 2500; this.maxHp = 2500;
         this.state = 'IDLE'; this.timer = 0;
         this.rageTimer = 0;
+        this.direction = 1;
     }
     update(dt) {
-        // Simple float
-        this.x += Math.sin(Date.now() / 500) * 2;
+        // Patrol Full Screen
+        this.x += this.speed * this.direction * dt;
+
+        // Bounce off walls
+        if (this.x < 0) {
+            this.x = 0;
+            this.direction = 1;
+        } else if (this.x + this.width > canvas.width) {
+            this.x = canvas.width - this.width;
+            this.direction = -1;
+        }
 
         // Attack logic
         this.timer += dt;
@@ -964,7 +977,7 @@ function nextLevel() {
         document.getElementById('go-title').style.color = "#ff0000"; // Red
         document.getElementById('go-title').style.fontSize = "40px";
 
-        document.getElementById('final-score').innerHTML = `You have defeated the mighty LUCHACABRA<br>and have made your city a better city.<br><br>FINAL SCORE: ${score}`;
+        document.getElementById('final-score').innerHTML = `You have defeated the mighty LUCHA CABRA<br>and have made your city a better city.<br><br>FINAL SCORE: ${score}`;
 
         // Hide Try Again, Show New Buttons is default in HTML now? 
         // We'll manage buttons in update if needed, but for now assuming HTML change.
