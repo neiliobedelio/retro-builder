@@ -960,7 +960,7 @@ function nextLevel() {
         goScreen.classList.remove('hidden');
 
         // WINNING STATE
-        document.getElementById('go-title').innerText = "YOU WIN\n...THIS TIME)!";
+        document.getElementById('go-title').innerText = "YOU WIN\n...THIS TIME!";
         document.getElementById('go-title').style.color = "#ff0000"; // Red
         document.getElementById('go-title').style.fontSize = "40px";
 
@@ -1024,7 +1024,7 @@ function update(dt) {
         document.getElementById('game-over-screen').classList.remove('hidden');
 
         // LOSING STATE
-        document.getElementById('go-title').innerText = "GAME OVER";
+        document.getElementById('go-title').innerText = "YOU LOSE!";
         document.getElementById('go-title').style.color = "#fff";
         document.getElementById('final-score').innerText = `SCORE: ${score}`;
 
@@ -1112,7 +1112,7 @@ function update(dt) {
 
                 // Javelina Reaction
                 if (c.type === 'JAVELINA') {
-                    floatingTexts.push(new FloatingText("grr!", c.x, c.y));
+                    floatingTexts.push(new FloatingText("GRR!", c.x, c.y));
                 }
 
                 c.hp--;
@@ -1138,7 +1138,7 @@ function update(dt) {
                 // Hit Boss
                 boss.takeDamage(10);
                 bricks.splice(i, 1);
-                floatingTexts.push(new FloatingText("¡Ay!", boss.x, boss.y));
+                floatingTexts.push(new FloatingText("¡AYE!", boss.x, boss.y));
             }
         }
     }
