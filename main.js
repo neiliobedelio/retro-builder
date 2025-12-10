@@ -324,8 +324,8 @@ class Launcher {
             [_, _, _, H, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Brim (Centered)
             [_, _, H, H, H, H, H, H, H, _, _, _, _, _, _, _], // Hat Brim (Centered)
             [_, _, _, D, D, W, W, D, _, _, _, _, _, _, G, _], // Eye row
-            [_, O, O, D, D, B, W, D, _, _, _, _, _, G, G, _], // Beak/Eye
-            [_, _, _, _, D, D, D, D, _, _, _, _, _, G, G, _], // Beak/Neck
+            [_, O, O, D, D, B, W, _, _, _, _, _, _, G, G, _], // Beak/Eye
+            [_, _, _, _, D, D, D, _, _, _, _, _, _, G, G, _], // Beak/Neck
             [_, _, _, _, D, D, _, _, _, _, _, _, D, G, D], // Neck / Tail tip
             [_, _, _, _, D, D, D, D, D, D, D, D, D, G, D], // Body top
             [_, _, _, _, D, D, D, G, G, G, G, G, G, D, D],
@@ -960,7 +960,7 @@ function nextLevel() {
         goScreen.classList.remove('hidden');
 
         // WINNING STATE
-        document.getElementById('go-title').innerText = "CONGRATULATIONS!";
+        document.getElementById('go-title').innerText = "YOU WIN\n...THIS TIME)!";
         document.getElementById('go-title').style.color = "#ff0000"; // Red
         document.getElementById('go-title').style.fontSize = "40px";
 

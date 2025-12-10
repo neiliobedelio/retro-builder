@@ -87,6 +87,7 @@ h1 {
 p {
     font-size: 14px;
     animation: blink 1s infinite;
+    line-height: 2em;
 }
 
 button {
@@ -95,6 +96,7 @@ button {
     padding: 15px 30px;
     font-family: var(--retro-font);
     font-size: 16px;
+    line-height: 2em;
     cursor: pointer;
     margin-top: 20px;
     color: #000;
@@ -102,6 +104,9 @@ button {
 
 button:active {
     transform: scale(0.95);
+}
+button:hover {
+    background: white;
 }
 
 @keyframes blink {
