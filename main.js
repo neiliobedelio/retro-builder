@@ -292,8 +292,10 @@ class Launcher {
         this.cooldown = 0;
         this.frozen = 0;
         this.fireRate = 0.2;
+        this.fireRate = 0.2;
         this.speed = 400;
         this.animTimer = 0;
+        this.scale = 1; // Default scale
     }
 
     update(dt) {
@@ -318,7 +320,7 @@ class Launcher {
 
     draw(ctx) {
         // PIXEL-PERFECT SPRITE (From Image)
-        const p = 5; // Scale up (16px * 5 = 80px width)
+        const p = 5 * this.scale; // Scale up (16px * 5 = 80px width at scale 1)
         const ox = this.x;
         const oy = this.y;
 
@@ -1393,7 +1395,55 @@ setTimeout(() => {
     });
 }, 500);
 
+// Character Previews for Intro Screen
+function drawCharacterPreviews() {
+    // Player Preview
+    const pCanvas = document.getElementById('preview-player');
+    if (pCanvas) {
+        const pCtx = pCanvas.getContext('2d');
+        // Compact Size
+        pCanvas.width = 40; pCanvas.height = 40;
+        pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+
+        const tempLauncher = new Launcher();
+        tempLauncher.scale = 0.25; // Target 20px (80 * 0.25)
+        tempLauncher.width = 80 * tempLauncher.scale;
+        tempLauncher.height = 50 * tempLauncher.scale;
+
+        // Override position to center on preview canvas
+        tempLauncher.x = (pCanvas.width - tempLauncher.width) / 2;
+        tempLauncher.y = (pCanvas.height - tempLauncher.height) / 2;
+        // Force bob to 0 (static)
+        tempLauncher.animTimer = 0;
+
+        // Draw
+        tempLauncher.draw(pCtx);
+    }
+
+    // Boss Preview
+    const bCanvas = document.getElementById('preview-boss');
+    if (bCanvas) {
+        const bCtx = bCanvas.getContext('2d');
+        // Compact Size
+        bCanvas.width = 40; bCanvas.height = 40;
+        bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+
+        const tempBoss = new Boss();
+        // Target ~20px. Grid is 24px wide. Scale 0.8 ≈ 19.2px.
+        tempBoss.scale = 0.8;
+        tempBoss.width = 60 * tempBoss.scale; // Hitbox width, draw uses scale logic internally
+        tempBoss.height = 40 * tempBoss.scale;
+
+        tempBoss.x = (bCanvas.width - (24 * tempBoss.scale)) / 2; // Center visual (24px grid)
+        tempBoss.y = (bCanvas.height - (30 * tempBoss.scale)) / 2; // Center visual (approx 30px height)
+        tempBoss.rageTimer = 0; // No rage effect
+
+        tempBoss.draw(bCtx);
+    }
+}
+
 // Start
 resize();
 initGame(); // Ensure objects exist for Menu background
+drawCharacterPreviews(); // Draw previews
 requestAnimationFrame(gameLoop);

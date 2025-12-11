@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lucha Cabra!</title>
+    <title>Defeat The Mighty Lucha Cabra!</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -27,14 +27,28 @@
         <div id="instruction-screen" class="screen active">
             <h1>HOW TO PLAY</h1>
             <div class="instruction-list">
-                <p><span class="highlight">HOW TO PLAY: Use the spacebar to shoot bricks past the LUCHA CABRA! Drag or use keyboard arrows to move.</span></p>
-                <p><span class="highlight">YOU:</span> “Rapido” the Roadrunner, ready to build wearing your hard hat.
-                    Safety first!</p>
-                <p><span class="highlight">LUCHA CABRA:</span> A Luchador challenging you throughout the process. Boo, Lucha!
+                <p><span class="highlight">HOW TO PLAY:</span>Use the spacebar to shoot bricks past the LUCHA CABRA!
+                    Drag or
+                    use keyboard arrows to move.</p>
+                <div class="instruction-item">
+                    <canvas id="preview-player" class="preview-canvas" width="40" height="40"></canvas>
+                    <p><span class="highlight">YOU:</span> "Rapido" the roadrunner is ready to improve Pueblo Viejo,
+                        brick by brick. Don’t forget your hard hat—safety first!</p>
+                </div>
+                <div class="instruction-item">
+                    <canvas id="preview-boss" class="preview-canvas" width="40" height="40"></canvas>
+                    <p><span class="highlight">LUCHA CABRA:</span> A luchador mask-wearing chupacabra, aka Lucha Cabra,
+                        is challenging your progress throughout the process. Booooo, Lucha!</p>
+                </div>
+                <p><span class="highlight">BRICKS:</span> Armed with a never-ending supply of bricks, help improve
+                    Pueblo Viejo by hurtling your building blocks.</p>
+                <p><span class="highlight">POWER UPS:</span> Collect the golden $ to earn extra points and blue + to
+                    restore Rapido's health.</p>
+                <p><span class="highlight">GOAL:</span> Throw your bricks past the Lucha Cabra to restore and improve
+                    Pueblo Viejo. The legendary Lucha Cabra will occasionally summon objects—such as saguaros and
+                    javelina—in an attempt to thwart your progress.</p>
+                <p><span class="highlight">PRO TIP:</span> Don’t hit the Lucha Cabra or it will send him into a frenzy!
                 </p>
-                <p><span class="highlight">BRICKS:</span> Just stack those building blocks!</p>
-                <p><span class="highlight">GOAL:</span> Fill in the building gaps. Don't get flattened! And don’t hit
-                    Lucha Cabra, or it’ll get fiercer!</p>
             </div>
             <button id="instruction-btn">LET'S GET READY TO RUMBLE!</button>
         </div>
@@ -45,6 +59,7 @@
             <img src="title.png" id="main-title" alt="Lucha Cabra"
                 style="width: 80%; max-width: 600px; height: auto; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
             <p>TAP TO START!</p>
+            <p class="copyright">©2025 Gordley Group</p>
         </div>
 
         <div id="level-transition-screen" class="screen hidden">

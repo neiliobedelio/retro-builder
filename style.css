@@ -43,6 +43,11 @@ canvas {
     height: 100%;
 }
 
+.preview-canvas {
+    width: auto;
+    height: auto;
+}
+
 #ui-layer {
     position: absolute;
     top: 10px;
@@ -105,6 +110,7 @@ button {
 button:active {
     transform: scale(0.95);
 }
+
 button:hover {
     background: white;
 }
@@ -194,20 +200,93 @@ button:hover {
 
 /* Violent Shake Animation */
 @keyframes shake {
-  0% { transform: translate(1px, 1px) rotate(0deg); }
-  10% { transform: translate(-1px, -2px) rotate(-1deg); }
-  20% { transform: translate(-3px, 0px) rotate(1deg); }
-  30% { transform: translate(3px, 2px) rotate(0deg); }
-  40% { transform: translate(1px, -1px) rotate(1deg); }
-  50% { transform: translate(-1px, 2px) rotate(-1deg); }
-  60% { transform: translate(-3px, 1px) rotate(0deg); }
-  70% { transform: translate(3px, 1px) rotate(-1deg); }
-  80% { transform: translate(-1px, -1px) rotate(1deg); }
-  90% { transform: translate(1px, 2px) rotate(0deg); }
-  100% { transform: translate(1px, -2px) rotate(-1deg); }
+    0% {
+        transform: translate(1px, 1px) rotate(0deg);
+    }
+
+    10% {
+        transform: translate(-1px, -2px) rotate(-1deg);
+    }
+
+    20% {
+        transform: translate(-3px, 0px) rotate(1deg);
+    }
+
+    30% {
+        transform: translate(3px, 2px) rotate(0deg);
+    }
+
+    40% {
+        transform: translate(1px, -1px) rotate(1deg);
+    }
+
+    50% {
+        transform: translate(-1px, 2px) rotate(-1deg);
+    }
+
+    60% {
+        transform: translate(-3px, 1px) rotate(0deg);
+    }
+
+    70% {
+        transform: translate(3px, 1px) rotate(-1deg);
+    }
+
+    80% {
+        transform: translate(-1px, -1px) rotate(1deg);
+    }
+
+    90% {
+        transform: translate(1px, 2px) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(1px, -2px) rotate(-1deg);
+    }
 }
 
 .shake {
-  animation: shake 0.5s;
-  animation-iteration-count: infinite;
+    animation: shake 0.5s;
+    animation-iteration-count: infinite;
+}
+
+.instruction-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.instruction-item canvas {
+    border: 2px solid #333;
+    background: #000;
+    flex-shrink: 0;
+}
+
+.instruction-item p {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.copyright {
+    position: absolute;
+    bottom: 10px;
+    font-size: 10px;
+    width: 100%;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    animation: none;
+}
+
+.screen.victory {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.victory-text {
+    color: #FFD700;
+    text-shadow: 0 0 10px #ff8c00;
+    font-size: 40px;
+    animation: shake 2s infinite;
 }
