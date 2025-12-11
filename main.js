@@ -21,6 +21,7 @@ let score = 0;
 let health = 100;
 let level = 1;
 let easyMode = false;
+let brianMode = false;
 
 // Global Game Objects
 let launcher;
@@ -59,6 +60,17 @@ window.addEventListener('keydown', (e) => {
         } else {
             launcher.fireRate = 0.2; // Normal Fire
         }
+    }
+
+    // Brian Mode Toggle (Hard Mode)
+    if (e.key === 'b' || e.key === 'B') {
+        brianMode = !brianMode;
+        if (brianMode) {
+            easyMode = false; // Exclusive
+            launcher.fireRate = 0.2; // Reset rapid fire if on
+        }
+        audio.playPowerUp();
+        floatingTexts.push(new FloatingText(brianMode ? "BRIAN MODE ON" : "BRIAN MODE OFF", launcher.x, launcher.y - 50));
     }
 });
 
@@ -454,7 +466,9 @@ class RoadPylon {
         this.rotationSpeed = (Math.random() - 0.5) * 5; // Rotate left or right
     }
     update(dt) {
-        this.y += this.speed * dt;
+        let speed = this.speed;
+        if (brianMode) speed *= 1.5;
+        this.y += speed * dt;
         this.x += Math.sin(this.wobble) * 2; this.wobble += dt * 5;
         this.angle += this.rotationSpeed * dt;
         if (this.y > canvas.height) this.active = false;
@@ -664,7 +678,9 @@ class Boss {
     }
     update(dt) {
         // Patrol Full Screen
-        this.x += this.speed * this.direction * dt;
+        let speed = this.speed;
+        if (brianMode) speed *= 1.5;
+        this.x += speed * this.direction * dt;
 
         // Bounce off walls
         if (this.x < 0) {
@@ -678,6 +694,7 @@ class Boss {
         // Attack logic
         this.timer += dt;
         let attackInterval = 3.0 - (level * 0.2);
+        if (brianMode) attackInterval *= 0.6; // 40% faster attacks
         if (this.rageTimer > 0) attackInterval = 0.8; // Very fast fire rate in Rage
         if (this.timer > attackInterval) {
             this.attack();
@@ -694,6 +711,7 @@ class Boss {
         // Spawn RoadPylon
         let order = new RoadPylon(this.x + this.width / 2, this.y + this.height);
         order.speed = 200 + (level * 50);
+        if (brianMode) order.speed *= 1.5;
         roadPylons.push(order);
     }
     draw(ctx) {
@@ -1118,7 +1136,9 @@ function update(dt) {
         if (s.x < launcher.x + launcher.width && s.x + s.width > launcher.x &&
             s.y < launcher.y + launcher.height && s.y + s.height > launcher.y) {
 
-            health -= 10;
+            let dmg = 10;
+            if (brianMode) dmg = 20;
+            health -= dmg;
             const lifeFill = document.getElementById('life-bar-fill');
             if (lifeFill) {
                 lifeFill.style.width = `${health}%`;
