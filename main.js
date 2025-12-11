@@ -22,6 +22,7 @@ let health = 100;
 let level = 1;
 let easyMode = false;
 let brianMode = false;
+let victoryMode = false;
 
 // Global Game Objects
 let launcher;
@@ -346,7 +347,7 @@ class Launcher {
 
         // 16x16 Grid
         const sprite = [
-            [_, _, _, _, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
+            [_, _, _, _, _, H, H, _, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
             [_, _, _, _, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
             [_, _, _, H, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Brim (Centered)
             [_, _, _, D, D, G, G, D, D, _, _, _, _, _, _, _], // Hat Brim (Centered)
@@ -834,6 +835,44 @@ class Particle {
     draw(ctx) { ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); }
 }
 
+class Firework {
+    constructor(x, y) {
+        this.x = x; this.y = y;
+        this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        this.particles = [];
+        for (let i = 0; i < 30; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 100 + 50;
+            this.particles.push({
+                x: x, y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1.0 + Math.random() * 0.5,
+                color: this.color
+            });
+        }
+        this.life = 2.0;
+    }
+    update(dt) {
+        this.particles.forEach(p => {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.vy += 100 * dt; // Gravity
+            p.life -= dt;
+        });
+        this.life -= dt;
+    }
+    draw(ctx) {
+        this.particles.forEach(p => {
+            if (p.life > 0) {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 4, 4);
+            }
+        });
+    }
+}
+let fireworks = [];
+
 class FloatingText {
     constructor(text, x, y) {
         this.text = text; this.x = x; this.y = y; this.life = 1.0;
@@ -1007,9 +1046,11 @@ function nextLevel() {
         goScreen.classList.remove('hidden');
 
         // WINNING STATE
-        document.getElementById('go-title').innerText = "YOU WIN\n...THIS TIME!";
-        document.getElementById('go-title').style.color = "#ff0000"; // Red
-        document.getElementById('go-title').style.fontSize = "40px";
+        victoryMode = true;
+        const goTitle = document.getElementById('go-title');
+        goTitle.innerText = "YOU WIN\n...THIS TIME!";
+        goTitle.classList.add('victory-text'); // Animated Text
+        goScreen.classList.add('victory'); // Background effect
 
         document.getElementById('final-score').innerHTML = `You have defeated the mighty LUCHA CABRA<br>and have made your city a better place.<br><br>FINAL SCORE: ${score}`;
 
@@ -1047,7 +1088,13 @@ function startGame() {
 }
 
 function resetGame() {
-    document.getElementById('game-over-screen').classList.add('hidden');
+    const goScreen = document.getElementById('game-over-screen');
+    goScreen.classList.add('hidden');
+    goScreen.classList.remove('victory'); // Remove victory styling
+    document.getElementById('go-title').classList.remove('victory-text');
+
+    victoryMode = false;
+    fireworks = [];
     currentState = STATE.MENU;
     document.getElementById('start-screen').classList.remove('hidden');
 }
@@ -1065,6 +1112,19 @@ function gameLoop(timestamp) {
 }
 
 function update(dt) {
+    if (currentState !== STATE.PLAYING && !(currentState === STATE.GAME_OVER && victoryMode)) return;
+
+    // Victory Loop
+    if (currentState === STATE.GAME_OVER && victoryMode) {
+        // Spawn Fireworks
+        if (Math.random() < 0.05) {
+            fireworks.push(new Firework(Math.random() * canvas.width, Math.random() * canvas.height * 0.6));
+        }
+        fireworks.forEach(f => f.update(dt));
+        fireworks = fireworks.filter(f => f.life > 0);
+        return;
+    }
+
     if (currentState !== STATE.PLAYING) return;
 
     // Easy Mode Logic: Invincibility
@@ -1223,8 +1283,15 @@ function update(dt) {
 }
 
 function draw() {
-    if (currentState !== STATE.PLAYING) return;
+    if (currentState !== STATE.PLAYING && !(currentState === STATE.GAME_OVER && victoryMode)) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear
+
+    if (currentState === STATE.GAME_OVER && victoryMode) {
+        fireworks.forEach(f => f.draw(ctx));
+        return;
+    }
+
+    if (currentState !== STATE.PLAYING) return;
 
     // Draw Entities
     blueprint.draw(ctx);
