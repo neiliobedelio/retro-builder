@@ -322,7 +322,7 @@ class Launcher {
         const sprite = [
             [_, _, _, _, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
             [_, _, _, _, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
-            [_, _, _, H, H, H, H, H, H, _, _, _, _, _, _, _], // Hat Brim (Centered)
+            [_, _, _, H, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Brim (Centered)
             [_, _, _, D, D, G, G, D, D, _, _, _, _, _, _, _], // Hat Brim (Centered)
             [O, O, O, D, G, B, B, D, _, _, _, _, _, _, G, _], // Eye row
             [_, O, O, D, G, B, W, _, _, _, _, _, _, G, G, _], // Beak/Eye
