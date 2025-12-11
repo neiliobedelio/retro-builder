@@ -20,6 +20,7 @@ let lastTime = 0;
 let score = 0;
 let health = 100;
 let level = 1;
+let easyMode = false;
 
 // Global Game Objects
 let launcher;
@@ -46,6 +47,19 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowLeft') input.keys.left = true;
     if (e.code === 'ArrowRight') input.keys.right = true;
     if (e.code === 'Space') input.keys.space = true;
+
+    // Easy Mode Toggle
+    if (e.key === 'e' || e.key === 'E') {
+        easyMode = !easyMode;
+        audio.playPowerUp();
+        floatingTexts.push(new FloatingText(easyMode ? "LORIE MODE ON" : "LORIE MODE OFF", launcher.x, launcher.y - 50));
+
+        if (easyMode) {
+            launcher.fireRate = 0.05; // Rapid Fire
+        } else {
+            launcher.fireRate = 0.2; // Normal Fire
+        }
+    }
 });
 
 window.addEventListener('keyup', (e) => {
@@ -638,8 +652,11 @@ class Blueprint {
 
 class Boss {
     constructor() {
-        this.width = 120; this.height = 80;
-        this.x = canvas.width / 2 - 60; this.y = 80;
+        this.scale = (window.innerWidth < 768) ? 1.5 : 2;
+        this.width = 60 * this.scale;
+        this.height = 40 * this.scale;
+        this.x = canvas.width / 2 - this.width / 2;
+        this.y = 80;
         this.speed = 100; this.hp = 2500; this.maxHp = 2500;
         this.state = 'IDLE'; this.timer = 0;
         this.rageTimer = 0;
@@ -681,7 +698,7 @@ class Boss {
     }
     draw(ctx) {
         // ULTRA-HIGH FIDELITY Boss (Restored)
-        const p = 2; // Pixel Scale
+        const p = this.scale; // Pixel Scale
         const ox = this.x;
         let stomp = (this.rageTimer > 0) ? Math.sin(Date.now() / 50) * 5 : 0;
         const oy = this.y + stomp;
@@ -903,8 +920,6 @@ function initGame() {
         boss = new Boss();
         // Restore dynamic Boss positioning and difficulty
         boss.y = 150 + (level * 20);
-        boss.width = 120;
-        boss.height = 80;
         boss.x = canvas.width / 2 - boss.width / 2;
 
         // Note: Boss class handles attack interval internally now, but we set position here.
@@ -1033,6 +1048,14 @@ function gameLoop(timestamp) {
 
 function update(dt) {
     if (currentState !== STATE.PLAYING) return;
+
+    // Easy Mode Logic: Invincibility
+    if (easyMode) {
+        health = 100;
+        const lifeFill = document.getElementById('life-bar-fill');
+        if (lifeFill) { lifeFill.style.width = '100%'; lifeFill.style.backgroundColor = '#0f0'; }
+    }
+
     if (health <= 0) {
         currentState = STATE.GAME_OVER;
         document.getElementById('game-over-screen').classList.remove('hidden');
