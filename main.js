@@ -321,10 +321,11 @@ class Launcher {
         // 16x16 Grid
         const sprite = [
             [_, _, _, _, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
-            [_, _, _, H, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Brim (Centered)
-            [_, _, H, H, H, H, H, H, H, _, _, _, _, _, _, _], // Hat Brim (Centered)
-            [_, _, _, D, D, W, W, D, _, _, _, _, _, _, G, _], // Eye row
-            [_, O, O, D, D, B, W, _, _, _, _, _, _, G, G, _], // Beak/Eye
+            [_, _, _, _, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
+            [_, _, _, H, H, H, H, H, H, _, _, _, _, _, _, _], // Hat Brim (Centered)
+            [_, _, _, D, D, G, G, D, D, _, _, _, _, _, _, _], // Hat Brim (Centered)
+            [O, O, O, D, G, B, B, D, _, _, _, _, _, _, G, _], // Eye row
+            [_, O, O, D, G, B, W, _, _, _, _, _, _, G, G, _], // Beak/Eye
             [_, _, _, _, D, D, D, _, _, _, _, _, _, G, G, _], // Beak/Neck
             [_, _, _, _, D, D, _, _, _, _, _, _, D, G, D], // Neck / Tail tip
             [_, _, _, _, D, D, D, D, D, D, D, D, D, G, D], // Body top
