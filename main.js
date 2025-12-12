@@ -1305,7 +1305,7 @@ function drawBackground(ctx) {
     ctx.fillRect(0, 0, canvas.width, horizonY);
 
     // Desert Ground (Below Buildings)
-    if (horizonY < canvas.height) {
+    if (horizonY < canvas.height && currentState === STATE.PLAYING) {
         const grd = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
         grd.addColorStop(0, '#3E2723'); // Previous bottom color (now lightest)
         grd.addColorStop(1, '#0F0500'); // Almost Black
@@ -1316,7 +1316,7 @@ function drawBackground(ctx) {
 }
 
 function draw() {
-    if (currentState !== STATE.PLAYING && !(currentState === STATE.GAME_OVER && victoryMode)) return;
+    if (currentState !== STATE.PLAYING && currentState !== STATE.GAME_OVER) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear
 
     // Draw Background
