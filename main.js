@@ -600,7 +600,15 @@ class Blueprint {
                 if (this.grid[r][c] === -1) continue;
                 let brickY = r * this.brickHeight + 50; let bHeight = this.brickHeight;
                 ctx.fillStyle = '#1a1a1a'; ctx.fillRect(bx + this.brickWidth - 6, brickY + 4, 6, bHeight - 4);
-                if (this.grid[r][c] === 0) { ctx.strokeStyle = '#2a2a2a'; ctx.strokeRect(bx + 2, brickY, this.brickWidth - 8, bHeight); }
+                if (this.grid[r][c] === 0) {
+                    ctx.save();
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = '#00BFFF';
+                    ctx.fillStyle = 'rgba(0, 191, 255, 0.15)';
+                    ctx.fillRect(bx + 2, brickY, this.brickWidth - 8, bHeight);
+                    ctx.strokeRect(bx + 2, brickY, this.brickWidth - 8, bHeight);
+                    ctx.restore();
+                }
                 if (this.grid[r][c] === 1) {
                     ctx.fillStyle = '#2a2a2a'; ctx.fillRect(bx + 2, brickY, this.brickWidth - 8, bHeight);
                     let paneCols = 2; let paneRows = 2; let margin = 4;
@@ -915,12 +923,12 @@ class Javelina {
         // Scaled up to be physically bigger and chunkier
         const p = 4;
 
-        // Palette
-        const B = '#3e2b22'; // Dark Body
-        const L = '#5C4033'; // Light Brown (Highlights/Fur)
-        const W = '#E0E0E0'; // White Collar
-        const S = '#1a1a1a'; // Snout/Hooves/Ears
-        const P = '#D2B48C'; // Pinkish/Tan (Inner Ear/Snout tip)
+        // Palette (Lightened)
+        const B = '#CD853F'; // Peru (Body)
+        const L = '#FFD700'; // Gold (Highlights)
+        const W = '#FFFFFF'; // Bright White Collar
+        const S = '#8B4513'; // SaddleBrown (Snout/Hooves)
+        const P = '#FFE4B5'; // Moccasin (Inner Ear/Snout tip)
         const _ = null;
 
         // 16x11 Sprite (to fit ~64x44 box)
@@ -1183,10 +1191,10 @@ function update(dt) {
                 const lifeFill = document.getElementById('life-bar-fill');
                 if (lifeFill) {
                     lifeFill.style.width = `${health}%`;
-                    if (health > 30) lifeFill.style.backgroundColor = '#0f0';
+                    if (health >= 20) lifeFill.style.backgroundColor = '#0f0';
                 }
                 createExplosion(p.x, p.y, '#00FF00'); // Green particles
-                floatingTexts.push(new FloatingText("+20 HP", p.x, p.y));
+                floatingTexts.push(new FloatingText("+20\nHEALTH", p.x, p.y));
             }
             powerUps.splice(i, 1);
         }
@@ -1204,7 +1212,7 @@ function update(dt) {
             const lifeFill = document.getElementById('life-bar-fill');
             if (lifeFill) {
                 lifeFill.style.width = `${health}%`;
-                if (health < 30) lifeFill.style.backgroundColor = '#f00';
+                if (health < 20) lifeFill.style.backgroundColor = '#f00';
             }
             audio.playDamage();
             audio.playFreeze(); // Play freeze sound
@@ -1257,7 +1265,9 @@ function update(dt) {
                 // Hit Boss
                 boss.takeDamage(10);
                 bricks.splice(i, 1);
-                floatingTexts.push(new FloatingText("¡AYE!", boss.x, boss.y));
+                const responses = ["WTH?", "Seriously?", "Umm, no.", "try that again!"];
+                const text = responses[Math.floor(Math.random() * responses.length)];
+                floatingTexts.push(new FloatingText(text, boss.x, boss.y));
             }
         }
     }
@@ -1284,9 +1294,33 @@ function update(dt) {
     particles = particles.filter(p => p.life > 0);
 }
 
+function drawBackground(ctx) {
+    let horizonY = 250;
+    if (typeof blueprint !== 'undefined' && blueprint) {
+        horizonY = blueprint.rows * blueprint.brickHeight + 50;
+    }
+
+    // Sky (Behind Buildings)
+    ctx.fillStyle = '#191970'; // MidnightBlue
+    ctx.fillRect(0, 0, canvas.width, horizonY);
+
+    // Desert Ground (Below Buildings)
+    if (horizonY < canvas.height) {
+        const grd = ctx.createLinearGradient(0, horizonY, 0, canvas.height);
+        grd.addColorStop(0, '#3E2723'); // Previous bottom color (now lightest)
+        grd.addColorStop(1, '#0F0500'); // Almost Black
+
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, horizonY, canvas.width, canvas.height - horizonY);
+    }
+}
+
 function draw() {
     if (currentState !== STATE.PLAYING && !(currentState === STATE.GAME_OVER && victoryMode)) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear
+
+    // Draw Background
+    drawBackground(ctx);
 
     if (currentState === STATE.GAME_OVER && victoryMode) {
         fireworks.forEach(f => f.draw(ctx));
