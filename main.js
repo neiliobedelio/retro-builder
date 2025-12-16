@@ -168,6 +168,16 @@ class SoundManager {
         setTimeout(() => this.playTone(659.25, 'triangle', 0.1), 100);
         setTimeout(() => this.playTone(783.99, 'triangle', 0.4), 200);
     }
+    playSpeedUp() {
+        // Classic 8-bit Power-Up Arpeggio (C Major -> C6)
+        // C4, E4, G4, C5, E5, G5, C6
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+        let delay = 0;
+        notes.forEach(note => {
+            setTimeout(() => this.playTone(note, 'square', 0.08), delay);
+            delay += 60; // Fast sequence
+        });
+    }
 
     playTheme() {
         if (this.themeInterval) return;
@@ -296,6 +306,7 @@ class Launcher {
         this.speed = 400;
         this.animTimer = 0;
         this.scale = 1; // Default scale
+        this.speedBoostTimer = 0; // NEW: Speed boost timer
     }
 
     update(dt) {
@@ -304,8 +315,16 @@ class Launcher {
             this.frozen -= dt;
             return;
         }
-        if (input.keys.left) this.x -= this.speed * dt;
-        if (input.keys.right) this.x += this.speed * dt;
+
+        // Speed Logic
+        let currentSpeed = this.speed;
+        if (this.speedBoostTimer > 0) {
+            this.speedBoostTimer -= dt;
+            currentSpeed *= 2.0; // Double speed
+        }
+
+        if (input.keys.left) this.x -= currentSpeed * dt;
+        if (input.keys.right) this.x += currentSpeed * dt;
         if (input.keys.space) fireBrick();
 
         if (this.x < 0) this.x = 0;
@@ -324,86 +343,112 @@ class Launcher {
         const ox = this.x;
         const oy = this.y;
 
-        let facingRight = true;
-        if (input.keys.left) facingRight = false;
+        // Render Passes: Highlights (if speed active) -> Main Body
+        // If speed boost is active, we draw 4 copies in WHITE behind the main sprite to create an outline.
+        // Offsets: Up, Down, Left, Right (2px)
 
-        // ANIMATION: Bob
-        let bob = Math.sin(this.animTimer * 15) * 1;
-        if (!input.keys.left && !input.keys.right) bob = 0;
-
-        // LEGS ANIMATION
-        let legFrame = 0;
-        if (input.keys.left || input.keys.right) {
-            legFrame = Math.floor(this.animTimer * 10) % 2;
+        let passes = ['main'];
+        if (this.speedBoostTimer > 0) {
+            passes = ['outline-up', 'outline-down', 'outline-left', 'outline-right', 'main'];
         }
 
-        // Palette
-        const _ = null; // Transparent
-        const D = '#2F4F4F'; // Dark Teal (Body/Head) 
-        const G = '#6B8E23'; // Green (Wing/Chest)
-        const O = '#FF8C00'; // Orange (Beak/Legs)
-        const W = '#FFFFFF'; // White (Eye)
-        const B = '#000000'; // Black (Pupil)
-        const H = '#FFD700'; // Gold (Hat)
-        const R = '#DAA520'; // Dark Gold (Rim)
+        passes.forEach(pass => {
+            let drawOffsetX = 0;
+            let drawOffsetY = 0;
+            let colorOverride = null;
 
-        // 16x16 Grid
-        const sprite = [
-            [_, _, _, _, _, H, H, _, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
-            [_, _, _, _, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
-            [_, _, _, H, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Brim (Centered)
-            [_, _, _, D, D, G, G, D, D, _, _, _, _, _, _, _], // Hat Brim (Centered)
-            [O, O, O, D, G, B, B, D, _, _, _, _, _, _, G, _], // Eye row
-            [_, O, O, D, G, B, W, _, _, _, _, _, _, G, G, _], // Beak/Eye
-            [_, _, _, _, D, D, D, _, _, _, _, _, _, G, G, _], // Beak/Neck
-            [_, _, _, _, D, D, _, _, _, _, _, _, D, G, D], // Neck / Tail tip
-            [_, _, _, _, D, D, D, D, D, D, D, D, D, G, D], // Body top
-            [_, _, _, _, D, D, D, G, G, G, G, G, G, D, D],
-            [_, _, _, _, D, D, G, G, G, G, G, G, G, D, _], // Wing
-            [_, _, _, _, _, D, G, G, G, D, G, G, D, _, _],
-            [_, _, _, _, _, _, G, G, G, D, D, D, _, _, _],
-            [_, _, _, _, _, _, D, D, D, D, D, _, _, _, _], // Body bottom
-            [_, _, _, _, _, _, G, _, G, _, _, _, _, _, _, _], // Legs 1
-            [_, _, _, _, _, _, O, _, O, _, _, _, _, _, _, _], // Legs 2
-            [_, _, _, _, _, O, O, _, O, O, _, _, _, _, _, _]  // Feet
-        ];
-        const startY = oy + (this.height - (sprite.length * p)) / 2 + bob * p;
-        const startX = ox + (this.width - (sprite[0].length * p)) / 2;
+            if (pass === 'outline-up') { drawOffsetY = -2 * this.scale; colorOverride = '#FFFFFF'; }
+            if (pass === 'outline-down') { drawOffsetY = 2 * this.scale; colorOverride = '#FFFFFF'; }
+            if (pass === 'outline-left') { drawOffsetX = -2 * this.scale; colorOverride = '#FFFFFF'; }
+            if (pass === 'outline-right') { drawOffsetX = 2 * this.scale; colorOverride = '#FFFFFF'; }
 
-        for (let r = 0; r < sprite.length; r++) {
-            for (let c = 0; c < sprite[r].length; c++) {
-                let color = sprite[r][c];
-                if (color) {
-                    // Check for Leg logic (simple toggle)
-                    // If this is a leg pixel (Orange in last 3 rows) and animating
-                    // LEGS are now at rows 13, 14, 15 (indices) due to added gap row
-                    if (r >= 13 && color === O && legFrame === 1) {
-                        // Simple "run" check: shift legs or hide one
-                        if (c === 6) continue; // Hide left leg frame 1
+            ctx.save();
+            const renderX = ox + drawOffsetX;
+            const renderY = oy + drawOffsetY; // Use local Y as well
+
+            let facingRight = true;
+            if (input.keys.left) facingRight = false;
+
+            // ANIMATION: Bob
+            let bob = Math.sin(this.animTimer * 15) * 1;
+            if (!input.keys.left && !input.keys.right) bob = 0;
+
+            // LEGS ANIMATION
+            let legFrame = 0;
+            if (input.keys.left || input.keys.right) {
+                legFrame = Math.floor(this.animTimer * 10) % 2;
+            }
+
+            // Palette
+            const _ = null; // Transparent
+            const D = '#2F4F4F'; // Dark Teal (Body/Head) 
+            const G = '#6B8E23'; // Green (Wing/Chest)
+            const O = '#FF8C00'; // Orange (Beak/Legs)
+            const W = '#FFFFFF'; // White (Eye)
+            const B = '#000000'; // Black (Pupil)
+            const H = '#FFD700'; // Gold (Hat)
+            const R = '#DAA520'; // Dark Gold (Rim)
+
+            // 16x16 Grid
+            const sprite = [
+                [_, _, _, _, _, H, H, _, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
+                [_, _, _, _, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Dome (Centered)
+                [_, _, _, H, H, H, H, H, _, _, _, _, _, _, _, _], // Hat Brim (Centered)
+                [_, _, _, D, D, G, G, D, D, _, _, _, _, _, _, _], // Hat Brim (Centered)
+                [O, O, O, D, G, B, B, D, _, _, _, _, _, _, G, _], // Eye row
+                [_, O, O, D, G, B, W, _, _, _, _, _, _, G, G, _], // Beak/Eye
+                [_, _, _, _, D, D, D, _, _, _, _, _, _, G, G, _], // Beak/Neck
+                [_, _, _, _, D, D, _, _, _, _, _, _, D, G, D], // Neck / Tail tip
+                [_, _, _, _, D, D, D, D, D, D, D, D, D, G, D], // Body top
+                [_, _, _, _, D, D, D, G, G, G, G, G, G, D, D],
+                [_, _, _, _, D, D, G, G, G, G, G, G, G, D, _], // Wing
+                [_, _, _, _, _, D, G, G, G, D, G, G, D, _, _],
+                [_, _, _, _, _, _, G, G, G, D, D, D, _, _, _],
+                [_, _, _, _, _, _, D, D, D, D, D, _, _, _, _], // Body bottom
+                [_, _, _, _, _, _, G, _, G, _, _, _, _, _, _, _], // Legs 1
+                [_, _, _, _, _, _, O, _, O, _, _, _, _, _, _, _], // Legs 2
+                [_, _, _, _, _, O, O, _, O, O, _, _, _, _, _, _]  // Feet
+            ];
+            const startY = renderY + (this.height - (sprite.length * p)) / 2 + bob * p;
+            // Use renderX instead of ox
+            const startX = renderX + (this.width - (sprite[0].length * p)) / 2;
+
+            for (let r = 0; r < sprite.length; r++) {
+                for (let c = 0; c < sprite[r].length; c++) {
+                    let color = sprite[r][c];
+                    if (color) {
+                        // Check for Leg logic
+                        if (r >= 13 && color === O && legFrame === 1) {
+                            if (c === 6) continue;
+                        }
+                        if (r >= 13 && color === O && legFrame === 0) {
+                            if (c === 8) continue;
+                        }
+
+                        let drawX = c;
+                        if (facingRight) {
+                            drawX = (sprite[0].length - 1) - c;
+                        }
+
+                        // Apply color override if exists
+                        ctx.fillStyle = colorOverride || color;
+                        ctx.fillRect(startX + drawX * p, startY + r * p, p, p);
                     }
-                    if (r >= 13 && color === O && legFrame === 0) {
-                        if (c === 8) continue; // Hide right leg frame 0
-                    }
-
-                    let drawX = c;
-                    // Default sprite is Left-Facing.
-                    // Flip X if facing Right.
-                    if (facingRight) {
-                        drawX = (sprite[0].length - 1) - c;
-                    }
-
-                    ctx.fillStyle = color;
-                    ctx.fillRect(startX + drawX * p, startY + r * p, p, p);
                 }
             }
-        }
+            ctx.restore();
+        });
 
         // FROZEN / STUNNED STARS
         if (this.frozen > 0) {
             // ROTATING STARS (No Box)
             const time = Date.now() / 150;
             const starRadius = 20;
-            const headX = startX + (facingRight ? 11 * p : 5 * p); // Approx head center
+            // Recalculate startX for main character for stars
+            const startX = ox + (this.width - (16 * p)) / 2;
+            const startY = oy + (this.height - (17 * p)) / 2; // Approx
+
+            const headX = startX + ((input.keys.left ? false : true) ? 11 * p : 5 * p); // Approx head center
             const headY = startY + 2 * p;
 
             ctx.fillStyle = '#FFFF00';
@@ -550,9 +595,23 @@ class PowerUp {
         if (this.y > canvas.height) this.active = false;
     }
     draw(ctx) {
-        ctx.font = 'bold 30px "Press Start 2P", monospace';
-        if (this.type === 'MONEY') { ctx.fillStyle = '#ffd700'; ctx.fillText('$', this.x, this.y + 25); }
-        else { ctx.fillStyle = '#0ff'; ctx.fillText('+', this.x, this.y + 25); }
+        if (this.type === 'SPEED') {
+            // Draw 2 Solid Triangles (Arrows)
+            ctx.fillStyle = '#00FFFF';
+            const drawTriangle = (tx, ty) => {
+                ctx.beginPath();
+                ctx.moveTo(tx, ty);
+                ctx.lineTo(tx, ty + 12);
+                ctx.lineTo(tx + 12, ty + 6);
+                ctx.fill();
+            };
+            drawTriangle(this.x, this.y + 14);
+            drawTriangle(this.x + 14, this.y + 14);
+        } else {
+            ctx.font = 'bold 30px "Press Start 2P", monospace';
+            if (this.type === 'MONEY') { ctx.fillStyle = '#ffd700'; ctx.fillText('$', this.x, this.y + 25); }
+            else { ctx.fillStyle = '#0ff'; ctx.fillText('+', this.x, this.y + 25); }
+        }
     }
 }
 
@@ -1062,6 +1121,10 @@ function nextLevel() {
         goTitle.classList.add('victory-text'); // Animated Text
         goScreen.classList.add('victory'); // Background effect
 
+        // Show Victory Image
+        const vicImg = document.getElementById('victory-img');
+        if (vicImg) vicImg.classList.remove('hidden');
+
         document.getElementById('final-score').innerHTML = `You have defeated the mighty LUCHA CABRA<br>and have made your city a better place.<br><br>FINAL SCORE: ${score}`;
 
         // Hide Try Again, Show New Buttons is default in HTML now? 
@@ -1102,6 +1165,10 @@ function resetGame() {
     goScreen.classList.add('hidden');
     goScreen.classList.remove('victory'); // Remove victory styling
     document.getElementById('go-title').classList.remove('victory-text');
+
+    // Hide Victory Image
+    const vicImg = document.getElementById('victory-img');
+    if (vicImg) vicImg.classList.add('hidden');
 
     victoryMode = false;
     fireworks = [];
@@ -1146,7 +1213,12 @@ function update(dt) {
 
     if (health <= 0) {
         currentState = STATE.GAME_OVER;
+        currentState = STATE.GAME_OVER;
         document.getElementById('game-over-screen').classList.remove('hidden');
+
+        // Ensure Victory Image is Hidden (Just in case)
+        const vicImg = document.getElementById('victory-img');
+        if (vicImg) vicImg.classList.add('hidden');
 
         // LOSING STATE
         document.getElementById('go-title').innerText = "YOU LOSE!";
@@ -1164,7 +1236,12 @@ function update(dt) {
     powerUpTimer -= dt;
     if (powerUpTimer <= 0) {
         // 100% Chance
-        let type = Math.random() < 0.5 ? 'MONEY' : 'VOLUNTEER';
+        let choices = ['MONEY', 'VOLUNTEER'];
+        // Check for Mobile (Touch)
+        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (!isMobile) choices.push('SPEED');
+
+        let type = choices[Math.floor(Math.random() * choices.length)];
         powerUps.push(new PowerUp(Math.random() * (canvas.width - 20), 0, type));
 
         powerUpTimer = Math.random() * 4 + 8; // 8 to 12 seconds
@@ -1180,13 +1257,19 @@ function update(dt) {
             p.y < launcher.y + launcher.height && p.y + p.height > launcher.y) {
 
             p.active = false;
-            audio.playPowerUp();
 
             if (p.type === 'MONEY') {
+                audio.playPowerUp();
                 score += 500;
                 createExplosion(p.x, p.y, '#FFD700'); // Gold particles
                 floatingTexts.push(new FloatingText("+$500", p.x, p.y));
+            } else if (p.type === 'SPEED') {
+                audio.playSpeedUp(); // New Sound
+                launcher.speedBoostTimer = 5.0; // 5 Seconds Speed Boost
+                createExplosion(p.x, p.y, '#00FFFF');
+                floatingTexts.push(new FloatingText("SPEED UP!", p.x, p.y));
             } else {
+                audio.playPowerUp();
                 health = Math.min(health + 20, 100);
                 const lifeFill = document.getElementById('life-bar-fill');
                 if (lifeFill) {
@@ -1425,7 +1508,7 @@ setTimeout(() => {
 
     const planFunBtn = document.getElementById('plan-fun-btn');
     if (planFunBtn) planFunBtn.addEventListener('click', () => {
-        window.open('https://www.gordleygroup.com/contact', '_blank');
+        window.open('https://www.gordleygroup.com/holiday2025', '_blank');
     });
 }, 500);
 
